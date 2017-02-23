@@ -19,9 +19,13 @@ Bring up the environment using `docker-compose`:
 
 ## Interacting with the environment
 
-Star the client container:
+Start a shell in the client container:
 
-    $ docker exec -it dockerappmultikeystone_client_1 bash
+    $ docker-compose  -f docker-compose.yml -f client.yml run client bash
 
-Inside the client container, you will find credentials files located
-in `/config/keystone1` and `/config/keystone2`.
+This container will have access to the keystone services. You will
+find credentials files in the `/config` directory:
+
+    [root@9d6cef9b34a4 /]# find /config -type f
+    /config/keystone2/stackrc
+    /config/keystone1/stackrc
