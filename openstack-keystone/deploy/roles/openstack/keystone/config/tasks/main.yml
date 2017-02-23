@@ -1,0 +1,86 @@
+---
+- name: install keystone configuration file
+  template:
+    src: keystone.conf
+    dest: "{{ keystone_conf }}"
+
+- name: install keystone apache configuration
+  template:
+    src: "{{ item }}"
+    dest: "/etc/httpd/conf.d/{{ item }}"
+  with_items:
+    - keystone_wsgi_admin.conf
+    - keystone_wsgi_main.conf
+
+- name: create keystone wsgi directory
+  file:
+    path: /var/www/cgi-bin/keystone
+    state: directory
+
+- name: create keystone wsgi apps
+  file:
+    src: "/usr/bin/{{ item }}"
+    dest: "/var/www/cgi-bin/keystone/{{ item }}"
+    state: link
+  with_items:
+    - keystone-wsgi-admin
+    - keystone-wsgi-public
+
+- name: wait for mysql
+  command: >
+    mysql -h {{ keystone_db_host }} -u root -p{{mysql_root_password}}
+    -e "select 1"
+  register: mysql_up
+  failed_when: false
+  until: mysql_up.rc == 0
+
+- name: create keystone user
+  command:
+    mysql -h {{ keystone_db_host }} -u root -p{{mysql_root_password}}
+    -e "create user if not exists '{{ keystone_db_user }}'@'%'
+    identified by '{{ keystone_db_pass }}'"
+
+- name: ensure keystone database user password is set
+  command:
+    mysql -h {{ keystone_db_host }} -u root -p{{mysql_root_password}}
+    -e "alter user '{{ keystone_db_user }}'@'%'
+    identified by '{{ keystone_db_pass }}'"
+
+- name: create keystone database
+  command:
+    mysql -h {{ keystone_db_host }} -u root -p{{mysql_root_password}}
+    -e "create database if not exists {{ keystone_db_name }}
+    character set utf8mb4
+    collate utf8mb4_general_ci"
+
+- name: grant permissions on keystone database
+  command:
+    mysql -h {{ keystone_db_host }} -u root -p{{mysql_root_password}}
+    -e "grant all on {{ keystone_db_name }}.*
+    to '{{ keystone_db_user }}'@'%'"
+
+- name: sync database schema
+  command: keystone-manage db_sync
+
+- name: bootstrap keystone
+  command: >
+    keystone-manage bootstrap \
+        --bootstrap-password {{ keystone_secret }} \
+        --bootstrap-username admin \
+        --bootstrap-project-name admin \
+        --bootstrap-role-name admin \
+        --bootstrap-service-name keystone \
+        --bootstrap-region-id RegionOne \
+        --bootstrap-admin-url http://{{ ansible_hostname }}:{{ keystone_admin_port }} \
+        --bootstrap-public-url http://{{ ansible_hostname }}:{{ keystone_public_port }} \
+        --bootstrap-internal-url http://{{ ansible_hostname }}:{{ keystone_public_port }}
+
+- name: create output directory
+  file:
+    path: "/config/{{ ansible_hostname }}"
+    state: directory
+
+- name: generate stackrc file
+  template:
+    src: stackrc
+    dest: "/config/{{ ansible_hostname }}/stackrc"

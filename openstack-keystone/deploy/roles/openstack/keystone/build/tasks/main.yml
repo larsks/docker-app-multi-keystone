@@ -1,0 +1,5 @@
+---
+- name: install keystone package
+  package:
+    name: "{{ keystone_package_name }}"
+    state: installed

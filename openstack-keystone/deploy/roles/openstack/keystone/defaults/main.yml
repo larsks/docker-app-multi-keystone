@@ -1,0 +1,14 @@
+keystone_package_name: openstack-keystone
+
+keystone_secret: >-
+  {{ lookup('password',
+  'credentials/keystone_secret length=20') }}
+keystone_admin_token: "{{ keystone_secret|to_uuid }}"
+keystone_conf: /etc/keystone/keystone.conf
+keystone_db_host: "{{ ansible_env.KEYSTONE_DB_HOST|default('database') }}"
+keystone_db_user: "{{ ansible_env.KEYSTONE_DB_USER|default('keystone') }}"
+keystone_db_pass: "{{ ansible_env.KEYSTONE_DB_PASS|default(keystone_secret) }}"
+keystone_db_name: "{{ ansible_env.KEYSTONE_DB_NAME|default('keystone') }}"
+
+keystone_public_port: "5000"
+keystone_admin_port: "35357"

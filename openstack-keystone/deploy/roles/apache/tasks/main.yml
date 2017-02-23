@@ -1,0 +1,11 @@
+---
+- name: install apache
+  package:
+    name: "{{ apache_package_name }}"
+    state: installed
+
+- name: install apache modules
+  package:
+    name: "{{ item }}"
+    state: installed
+  with_items: "{{ apache_modules }}"

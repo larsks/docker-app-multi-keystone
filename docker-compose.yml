@@ -1,0 +1,46 @@
+version: "2"
+
+services:
+  database:
+    image: mysql/mysql-server
+    environment:
+      MYSQL_ROOT_PASSWORD: "secret"
+      MYSQL_ROOT_HOST: "%"
+    volumes:
+      - mysql:/var/lib/mysql
+
+  keystone1:
+    depends_on:
+      - database
+    image: openstack/keystone
+    hostname: keystone1
+    environment:
+      MYSQL_ROOT_PASSWORD: "secret"
+      KEYSTONE_DB_USER: keystone1
+      KEYSTONE_DB_HOST: database
+      KEYSTONE_DB_NAME: keystone1
+    volumes:
+      - config:/config
+
+  keystone2:
+    depends_on:
+      - database
+    image: openstack/keystone
+    hostname: keystone2
+    environment:
+      MYSQL_ROOT_PASSWORD: "secret"
+      KEYSTONE_DB_USER: keystone2
+      KEYSTONE_DB_HOST: database
+      KEYSTONE_DB_NAME: keystone2
+    volumes:
+      - config:/config
+
+  client:
+    image: openstack/client
+    command: sleep inf
+    volumes:
+      - config:/config
+
+volumes:
+  mysql:
+  config:

@@ -1,0 +1,4 @@
+---
+apache_package_name: httpd
+apache_modules:
+  - mod_wsgi

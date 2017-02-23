@@ -1,0 +1,4 @@
+#!/bin/sh
+
+ansible-playbook /deploy/entrypoint.yml
+exec "$@"

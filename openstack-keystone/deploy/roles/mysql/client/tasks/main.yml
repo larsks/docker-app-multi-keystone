@@ -1,0 +1,5 @@
+---
+- name: install mysql client
+  package:
+    name: "{{ mysql_package_name }}"
+    state: installed
