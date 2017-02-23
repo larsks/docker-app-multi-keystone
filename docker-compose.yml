@@ -35,12 +35,6 @@ services:
     volumes:
       - config:/config
 
-  client:
-    image: openstack/client
-    command: sleep inf
-    volumes:
-      - config:/config
-
 volumes:
   mysql:
   config:
